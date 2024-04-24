@@ -41,7 +41,7 @@ class SchellingAgent(mesa.Agent):
                 unsimilar += 1
 
         # If the distance to the nearest city center is longer than the required distance
-        if distance_to_center > self.model.distance:
+        if distance_to_center < self.model.distance:
             # If the number of similar neighbors is at least 1.5 times of the number of unsimilar neighbors
             if unsimilar == 0 or similar / unsimilar >= self.model.homophily:
                 # Happy
@@ -52,12 +52,8 @@ class SchellingAgent(mesa.Agent):
         # If the distance to the nearest city center is shorter than the required distance
         else:
             # If the number of similar neighbors is at least the same as the number of unsimilar neighbors
-            if unsimilar == 0 or similar / unsimilar >= 1:
-                # Happy
-                self.model.happy += 1
-            else:
-                # Unhappy
-                self.model.grid.move_to_empty(self)
+            # Unhappy
+            self.model.grid.move_to_empty(self)
 
 
 class Schelling(mesa.Model):
@@ -67,8 +63,8 @@ class Schelling(mesa.Model):
 
     def __init__(
         self,
-        height=20,
-        width=20,
+        height=100,
+        width=100,
         homophily=2,
         radius=1,
         density=0.7,
