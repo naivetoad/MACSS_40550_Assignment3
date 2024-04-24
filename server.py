@@ -42,16 +42,16 @@ def schelling_draw(agent):
 
 canvas_element = mesa.visualization.CanvasGrid(
     portrayal_method=schelling_draw,
-    grid_width=100,
-    grid_height=100,
+    grid_width=300,
+    grid_height=350,
     canvas_width=500,
     canvas_height=500,
 )
 happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
 
 model_params = {
-    "height": 100,
-    "width": 100,
+    "height": 350,
+    "width": 300,
     "density": mesa.visualization.Slider(
         name="Agent Density", value=0.7, min_value=0.1, max_value=1.0, step=0.1
     ),
@@ -69,7 +69,7 @@ model_params = {
     ),
     "city_distance": mesa.visualization.Slider(
         name="City Distance", 
-        value=0, min_value=0, max_value=int(math.sqrt(100**2 + 100**2) / 2), step=1) #Hard coded at this point because we hardcode height and width. to be edited if this changes.
+        value=0, min_value=0, max_value=int(math.sqrt(350**2 + 300**2) / 2), step=1) # <To be removed>
 }
 
 server = mesa.visualization.ModularServer(
