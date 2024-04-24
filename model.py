@@ -20,16 +20,15 @@ class SchellingAgent(mesa.Agent):
         super().__init__(unique_id, model)
         self.type = agent_type
         self.city_centers = city_centers
+        #self.time_spent_travel = time_spent_travel
+        #self.income = income
 
     def step(self):
         # Two city centers are initiated at the bottom-left corner and
         # the top-right corner to maximize distance.
         # Find the manhattan distance to the nearest city center 
-        distance_to_center = min(
-            abs(self.pos[0] - self.city_centers[0][0]) + abs(self.pos[1] - self.city_centers[0][1]),
-            abs(self.pos[0] - self.city_centers[1][0]) + abs(self.pos[1] - self.city_centers[1][1])
-        )
-        
+        distance_to_center = abs(self.pos[0] - self.city_centers[0]) + abs(self.pos[1] - self.city_centers[1])
+        travel_minutes = (distance_to_center * 200)/30000 * 60
         similar = 0
         unsimilar = 0
 
@@ -63,14 +62,13 @@ class Schelling(mesa.Model):
 
     def __init__(
         self,
-        height=350,
+        height=300,
         width=300,
         homophily=2,
         radius=1,
         density=0.7,
         minority_pc=0.5,
         distance=10,
-        city_distance=None, 
         seed=42,
     ):
         """
@@ -101,14 +99,8 @@ class Schelling(mesa.Model):
         self.happy = 0
         self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy"})
 
-        # Calculate city center positions based on city_distance
-        if city_distance is None:
-            city_distance = math.sqrt(height**2 + width**2) / 2  # Default to half the diagonal
-        offset = city_distance / math.sqrt(2)
-        self.city_centers = [
-            (max(0, min(self.width - 1, int(self.width / 2 - offset))), max(0, min(self.height - 1, int(self.height / 2 - offset)))),
-            (max(0, min(self.width - 1, int(self.width / 2 + offset))), max(0, min(self.height - 1, int(self.height / 2 + offset))))
-        ]
+        # Now we only have one city centre - Defined as Millenium Square.
+        self.city_centers = [(177, 260)] # Need to double check real block later.
 
         # Set up agents
         for _, pos in self.grid.coord_iter():
