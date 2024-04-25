@@ -61,9 +61,11 @@ class SchellingAgent(mesa.Agent):
         # Form: u(agent) = theta*u(x) + (1-theta)*u(y)
         total_utility = (self.model.preference * normalized_travel_utility) + (1-self.model.preference) * normalized_homophily_utility
         
+        
         # Adjust happiness threshold based on the last utility 
         ## These functions represent the agents dynamic standards when they 
-        ## make decisions that impact them positively or negatively.
+        ## make decisions that impact them positively or negatively. 
+        ## Future work will look at different mechanisms of agent learning.
         if total_utility > self.last_utility:
             # Positive feedback: happiness threshold increases 
             self.happiness_threshold += 0.05 * (1 - self.happiness_threshold)
