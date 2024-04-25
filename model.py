@@ -7,7 +7,7 @@ class SchellingAgent(mesa.Agent):
     Schelling segregation agent
     """
 
-    def __init__(self, unique_id, model, agent_type, city_center):
+    def __init__(self, unique_id, model, agent_type, city_center, happiness_threshold):
         """
         Create a new Schelling agent.
 
@@ -20,7 +20,7 @@ class SchellingAgent(mesa.Agent):
         super().__init__(unique_id, model)
         self.type = agent_type
         self.city_center = city_center
-        self.happiness_threshold = 0
+        self.happiness_threshold = happiness_threshold
         self.last_utility = 0
 
     def step(self):
@@ -33,7 +33,7 @@ class SchellingAgent(mesa.Agent):
         if travel_utility < 0:
             normalized_travel_utility = travel_utility / 322
         else:
-            normalized_travel_utility = travel_utility / 30
+            normalized_travel_utility = travel_utility / 30 
 
         similar = 0
         unsimilar = 0
@@ -47,7 +47,7 @@ class SchellingAgent(mesa.Agent):
         homophily_utility = (similar - unsimilar) # ranges from -8 to 8
         normalized_homophily_utility = homophily_utility / 8
 
-        total_utility = (self.model.preference_ratio * normalized_travel_utility) + (1-self.model.preference_ratio) * normalized_homophily_utility
+        total_utility = (self.model.preference * normalized_travel_utility) + (1-self.model.preference) * normalized_homophily_utility
         
         # Added Learning mechanism: Adjust happiness threshold based on past utility
         if total_utility > self.last_utility:
@@ -60,15 +60,15 @@ class SchellingAgent(mesa.Agent):
         # Update last utility
         self.last_utility = total_utility
 
-        # Decision to move based on new threshold comparison
+        # Move if total utility becomes lower than your own standard
         if total_utility < self.happiness_threshold:
             self.model.grid.move_to_empty(self)
         else:
             self.model.happy += 1
-                if normalized_travel_utility > 0:
-                    self.model.happy_with_travel_time += 1
-                elif normalized_homophily_utility > 0:
-                    self.model.happy_with_homophily += 1
+            if normalized_travel_utility > 0:
+                self.model.happy_with_travel_time += 1
+            if normalized_homophily_utility > 0:
+                self.model.happy_with_homophily += 1
             
 
 
@@ -84,7 +84,7 @@ class Schelling(mesa.Model):
         homophily=2,
         density=0.7,
         minority_pc=0.5,
-        preference_ratio = 0.5, 
+        preference = 0.5, 
         seed=42,
     ):
         """
@@ -106,7 +106,7 @@ class Schelling(mesa.Model):
         self.density = density
         self.minority_pc = minority_pc
         self.homophily = homophily
-        self.preference_ratio = preference_ratio
+        self.preference = preference
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=False)
@@ -114,22 +114,22 @@ class Schelling(mesa.Model):
         self.happy = 0
         self.happy_with_travel_time = 0
         self.happy_with_homophily = 0
-        self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy", "happy_with_travel_time": "happy_with_travel_time", "happy_with_homophily": "happy_with_homophily"})
+        self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy",
+                                                                  "happy_with_travel_time": "happy_with_travel_time",
+                                                                    "happy_with_homophily": "happy_with_homophily"})
 
         self.city_center = [(52, 36)]
+        self.happiness_threshold = 0.5 # Attribute of model
 
         # Set up agents
         for _, pos in self.grid.coord_iter():
             if self.random.random() < self.density:
-                agent_type = 1 if self.random.random() < self.minority_pc else 0 
-                agent = SchellingAgent(self.next_id(), self, agent_type, self.city_center)
-                agent.happiness_threshold = 0.5  # Initial happiness threshold
+                agent_type = 1 if self.random.random() < self.minority_pc else 0 # Random activation right?
+                agent = SchellingAgent(self.next_id(), self, agent_type, self.city_center, self.happiness_threshold)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
-
-        self.datacollector = mesa.DataCollector(
-        model_reporters={"happy": "happy", "Average Threshold": lambda m: np.mean([a.happiness_threshold for a in m.schedule.agents])}
-                    )
+                
+        self.datacollector.collect(self)
 
     def step(self):
         """

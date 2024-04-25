@@ -18,7 +18,7 @@ def schelling_draw(agent):
 
     # Differentiate portrayal for cities and agents
     x, y = agent.pos if agent is not None else (None, None)
-    if agent.model.city_center == [x, y]:
+    if agent.model.city_center == [(x, y)]:
         portrayal["Color"] = "black"  # Set city center color to black
         portrayal["Shape"] = "rect"  # Set shape to rectangle for city center
         portrayal["w"] = 0.8  
@@ -43,10 +43,12 @@ canvas_element = mesa.visualization.CanvasGrid(
     portrayal_method=schelling_draw,
     grid_width=60,
     grid_height=70,
-    canvas_width=500,
-    canvas_height=800,
+    canvas_width=600,
+    canvas_height=700,
 )
-happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}, {"Label": "happy_with_travel_time", "Color": "Blue"}, {"Label": "happy_with_homophily", "Color": "Green"}])
+happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}, 
+                                              {"Label": "happy_with_travel_time", "Color": "Blue"}, 
+                                              {"Label": "happy_with_homophily", "Color": "Green"}])
 
 model_params = {
     "height": 70,
@@ -57,8 +59,8 @@ model_params = {
     "minority_pc": mesa.visualization.Slider(
         name="Minority Percentage", value=0.5, min_value=0.00, max_value=1.0, step=0.05
     ),
-    "preference_ratio": mesa.visualization.Slider(
-        name="Preference Ratio (Travel Time to Homophily)", value = 0.5, min_value = 0, max_value=1, step=0.1
+    "preference": mesa.visualization.Slider(
+        name="Preference(0:Homophily, 1:travel time)", value = 0.5, min_value = 0, max_value=1, step=0.1
     )
 }
 
