@@ -4,18 +4,19 @@ import numpy as np
 
 class SchellingAgent(mesa.Agent):
     """
-    Schelling segregation agent
+    Create a Schelling segregation agent
     """
 
     def __init__(self, unique_id, model, agent_type, city_center, happiness_threshold):
         """
-        Create a new Schelling agent.
-
+        Initialize an agent
+        
         Args:
-           unique_id: An agent's unique identifier.
-           x, y: An agent's initial location.
-           agent_type: An agent's type (minority=1, majority=0)
-           city_centers: the position of a city centers
+           unique_id: an agent's unique identifier
+           model: Schelling segregation model
+           agent_type: an agent's type (minority=1, majority=0)
+           city_center: position of a city center (52, 36)
+           happiness_threshold: an agent's happiness threshold (0.5)
         """
         super().__init__(unique_id, model)
         self.type = agent_type
@@ -24,49 +25,60 @@ class SchellingAgent(mesa.Agent):
         self.last_utility = 0
 
     def step(self):
-        # Two city centers are initiated at the bottom-left corner and
-        # the top-right corner to maximize distance.
-        # Find the manhattan distance to the nearest city center 
-        distance_to_center = abs(self.pos[0] - self.city_center[0][0]) + abs(self.pos[1] - self.city_center[0][1]) # in number of blocks
-        travel_time = (distance_to_center * 1000) / 30000 * 60  # in minutes
-        travel_utility = (30 - travel_time)  # ranges from -322 to 30
+        # Find the manhattan distance to the city center in the number of blocks
+        # Each block is a 1000m * 1000m square
+        distance_to_center = abs(self.pos[0] - self.city_center[0][0]) + abs(self.pos[1] - self.city_center[0][1])
+        # Find the travel time from residence to workplace in minutes with a speed of 30000m/h
+        travel_time = (distance_to_center * 1000) / 30000 * 60
+        # Find the travel utility by subtracting travel time from the Marchetti's constant (30 minutes)
+        travel_utility = (30 - travel_time)
+        # Normalize the travel utility ranging from -322 to 30
         if travel_utility < 0:
             normalized_travel_utility = travel_utility / 322
         else:
             normalized_travel_utility = travel_utility / 30 
 
+        # Create variables for similar and unsimilar neighborhoods
         similar = 0
         unsimilar = 0
+        
         for neighbor in self.model.grid.iter_neighbors(self.pos, moore=True, radius=1):
-            # Find the number of similar and unsimilar neighbors
+            # Find the number of similar and unsimilar neighbors in a radius of 1 (8 surrounding blocks)
             if neighbor.type == self.type:
                 similar += 1
             else:
                 unsimilar += 1
 
-        homophily_utility = (similar - unsimilar) # ranges from -8 to 8
+        # Find the homophily utility by subtracting the number of unsimilar neighbors from thre number of similar neighbors
+        homophily_utility = (similar - unsimilar)
+        # Normalize the homophily utility ranging from -8 to 8
         normalized_homophily_utility = homophily_utility / 8
 
+        # Find the total utility by adding travel utility and homophily utility in relation to preference toward them
         total_utility = (self.model.preference * normalized_travel_utility) + (1-self.model.preference) * normalized_homophily_utility
         
-        # Added Learning mechanism: Adjust happiness threshold based on past utility
+        # Adjust happiness threshold based on the last utility 
         if total_utility > self.last_utility:
-            # Positive feedback
-            self.happiness_threshold += 0.05 * (1 - self.happiness_threshold)  # Adjust this factor to control learning rate
+            # Positive feedback: happiness threshold increases 
+            self.happiness_threshold += 0.05 * (1 - self.happiness_threshold)
         elif total_utility < self.last_utility:
-            # Negative feedback
-            self.happiness_threshold -= 0.05 * (1 - self.happiness_threshold)  # Adjust this factor to control learning rate
+            # Negative feedback: happiness threshold decreases 
+            self.happiness_threshold -= 0.05 * (1 - self.happiness_threshold)
 
-        # Update last utility
+        # Update the last utility for the next move
         self.last_utility = total_utility
 
-        # Move if total utility becomes lower than your own standard
+        # Update an agent's location
         if total_utility < self.happiness_threshold:
+            # An agent mvoes to an empty space if the total utility is smaller than the happiness threshold
             self.model.grid.move_to_empty(self)
         else:
+            # Track the number of happy agents
             self.model.happy += 1
+            # Track the number of agents happy with travel time
             if normalized_travel_utility > 0:
                 self.model.happy_with_travel_time += 1
+            # Track the number of agents happy with homophily 
             if normalized_homophily_utility > 0:
                 self.model.happy_with_homophily += 1
             
@@ -74,30 +86,27 @@ class SchellingAgent(mesa.Agent):
 
 class Schelling(mesa.Model):
     """
-    Model class for the Schelling segregation model.
+    Create a Schelling segregation model
     """
 
     def __init__(
         self,
         height=70,
         width=60,
-        homophily=2,
-        density=0.7,
+        density=0.3,
         minority_pc=0.5,
-        preference = 0.5, 
+        preference=0.5, 
         seed=42,
     ):
         """
         Create a new Schelling model.
 
         Args:
-            width, height: Size of the space.
-            density: Initial Chance for a cell to populated
-            minority_pc: Chances for an agent to be in minority class
-            homophily: minimum ratio of number of similar agents to number of unsimilar agents
-            radius: Search radius for checking similarity
-            distance: required distance to a city center
-            seed: Seed for Reproducibility
+            height, width: space's size
+            density: possibility for a block to be occupied by an agent
+            minority_pc: possibility for an agent to be in minority class
+            preference: relative preference for travel time and homophily
+            seed: seed for reproducibility
         """
 
         super().__init__(seed=seed)
@@ -111,20 +120,23 @@ class Schelling(mesa.Model):
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=False)
 
+        # Create variables for data collector
         self.happy = 0
         self.happy_with_travel_time = 0
         self.happy_with_homophily = 0
         self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy",
-                                                                  "happy_with_travel_time": "happy_with_travel_time",
-                                                                    "happy_with_homophily": "happy_with_homophily"})
+                                                                 "happy_with_travel_time": "happy_with_travel_time",
+                                                                 "happy_with_homophily": "happy_with_homophily"})
 
+        # Set up a city center
         self.city_center = [(52, 36)]
-        self.happiness_threshold = 0.5 # Attribute of model
+        # Set up happiness threshold
+        self.happiness_threshold = 0.5
 
         # Set up agents
         for _, pos in self.grid.coord_iter():
             if self.random.random() < self.density:
-                agent_type = 1 if self.random.random() < self.minority_pc else 0 # Random activation right?
+                agent_type = 1 if self.random.random() < self.minority_pc else 0
                 agent = SchellingAgent(self.next_id(), self, agent_type, self.city_center, self.happiness_threshold)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
@@ -133,14 +145,18 @@ class Schelling(mesa.Model):
 
     def step(self):
         """
-        Run one step of the model.
+        Run one step
         """
-        self.happy = 0  # Reset counter of happy agents
+        # Reset data collector
+        self.happy = 0
         self.happy_with_travel_time = 0
         self.happy_with_homophily = 0
-        self.schedule.step()
 
+        # Run one step
+        self.schedule.step()
+        # Collect data
         self.datacollector.collect(self)
 
+        # Stop the simulation if all agents are happy
         if self.happy == self.schedule.get_agent_count():
             self.running = False
