@@ -31,7 +31,7 @@ class SchellingAgent(mesa.Agent):
         travel_time = (distance_to_center * 1000) / 30000 * 60  # in minutes
         travel_utility = (30 - travel_time)  # ranges from -322 to 30
         if travel_utility < 0:
-            normalized_travel_utility = travel_utility / 322 # [Greg Comment - The reasoning for this is to enforce symmetry? ]
+            normalized_travel_utility = travel_utility / 322
         else:
             normalized_travel_utility = travel_utility / 30
 
@@ -47,7 +47,7 @@ class SchellingAgent(mesa.Agent):
         homophily_utility = (similar - unsimilar) # ranges from -8 to 8
         normalized_homophily_utility = homophily_utility / 8
 
-        total_utility = (normalized_travel_utility * self.model.preference_ratio) + normalized_homophily_utility # [Greg Note: Equation should be u(x,y) = (theta)(u_x) + (1-theta)(u_y)]
+        total_utility = (self.model.preference_ratio * normalized_travel_utility) + (1-self.model.preference_ratio) * normalized_homophily_utility
         
         # Added Learning mechanism: Adjust happiness threshold based on past utility
         if total_utility > self.last_utility:
@@ -55,7 +55,7 @@ class SchellingAgent(mesa.Agent):
             self.happiness_threshold += 0.05 * (1 - self.happiness_threshold)  # Adjust this factor to control learning rate
         elif total_utility < self.last_utility:
             # Negative feedback
-            self.happiness_threshold -= 0.05 * self.happiness_threshold  # Adjust this factor to control learning rate
+            self.happiness_threshold -= 0.05 * (1 - self.happiness_threshold)  # Adjust this factor to control learning rate
 
         # Update last utility
         self.last_utility = total_utility
@@ -79,7 +79,7 @@ class Schelling(mesa.Model):
         homophily=2,
         density=0.7,
         minority_pc=0.5,
-        preference_ratio = 1, 
+        preference_ratio = 0.5, 
         seed=42,
     ):
         """

@@ -58,7 +58,7 @@ model_params = {
         name="Minority Percentage", value=0.5, min_value=0.00, max_value=1.0, step=0.05
     ),
     "preference_ratio": mesa.visualization.Slider(
-        name="Preference Ratio (Travel Time to Homophily)", value = 1, min_value = 0, max_value=2, step=0.1
+        name="Preference Ratio (Travel Time to Homophily)", value = 0.5, min_value = 0, max_value=1, step=0.1
     )
 }
 
