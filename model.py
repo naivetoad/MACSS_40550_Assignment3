@@ -4,10 +4,10 @@ import numpy as np
 
 class SchellingAgent(mesa.Agent):
     """
-    Create a Schelling segregation agent
+    Create a residence agent
     """
 
-    def __init__(self, unique_id, model, agent_type, city_center, happiness_threshold):
+    def __init__(self, unique_id, model, agent_type, happiness_threshold):
         """
         Initialize an agent
         
@@ -15,19 +15,17 @@ class SchellingAgent(mesa.Agent):
            unique_id: an agent's unique identifier
            model: Schelling segregation model
            agent_type: an agent's type (minority=1, majority=0)
-           city_center: position of a city center (52, 36)
            happiness_threshold: an agent's happiness threshold (0.5)
         """
         super().__init__(unique_id, model)
         self.type = agent_type
-        self.city_center = city_center
         self.happiness_threshold = happiness_threshold
         self.last_utility = 0
 
     def step(self):
-        # Find the manhattan distance to the city center in the number of blocks
+        # Find the manhattan distance to the city center (52, 36) in the number of blocks
         # Each block is a 1000m * 1000m square
-        distance_to_center = abs(self.pos[0] - self.city_center[0][0]) + abs(self.pos[1] - self.city_center[0][1])
+        distance_to_center = abs(self.pos[0] - 52) + abs(self.pos[1] - 36)
         # Find the travel time from residence to workplace in minutes with a speed of 30000m/h
         travel_time = (distance_to_center * 1000) / 30000 * 60
         # Find the travel utility by subtracting travel time from the Marchetti's constant (30 minutes)
@@ -44,10 +42,11 @@ class SchellingAgent(mesa.Agent):
         
         for neighbor in self.model.grid.iter_neighbors(self.pos, moore=True, radius=1):
             # Find the number of similar and unsimilar neighbors in a radius of 1 (8 surrounding blocks)
-            if neighbor.type == self.type:
-                similar += 1
-            else:
-                unsimilar += 1
+            if neighbor.pos != (52, 36): # disregard the city center
+                if neighbor.type == self.type:
+                    similar += 1
+                else:
+                    unsimilar += 1
 
         # Find the homophily utility by subtracting the number of unsimilar neighbors from thre number of similar neighbors
         homophily_utility = (similar - unsimilar)
@@ -81,8 +80,21 @@ class SchellingAgent(mesa.Agent):
             # Track the number of agents happy with homophily 
             if normalized_homophily_utility > 0:
                 self.model.happy_with_homophily += 1
-            
 
+class CityCenter(mesa.Agent):
+    """
+    Create a city center agent
+    """
+
+    def __init__(self, unique_id, model):
+        """
+        Initialize an agent
+        
+        Args:
+           unique_id: an agent's unique identifier
+           model: Schelling segregation model
+        """
+        super().__init__(unique_id, model)
 
 class Schelling(mesa.Model):
     """
@@ -95,7 +107,7 @@ class Schelling(mesa.Model):
         width=60,
         density=0.35, # 35% land used for residence in Cook County
         minority_pc=0.35, # 35% minority in Cook County
-        preference=0.5, 
+        preference=0.5,  
         seed=42,
     ):
         """
@@ -127,18 +139,20 @@ class Schelling(mesa.Model):
                                                                  "happy_with_travel_time": "happy_with_travel_time",
                                                                  "happy_with_homophily": "happy_with_homophily"})
 
-        # Set up a city center
-        self.city_center = [(52, 36)]
         # Set up happiness threshold
-        self.happiness_threshold = 0.5
+        happiness_threshold = 0.5
 
-        # Set up agents
+        agent = CityCenter(self.next_id(), self)
+        self.grid.place_agent(agent, (52, 36)) # location of the Millennium Park
+
+        # Set up residence agents 
         for _, pos in self.grid.coord_iter():
-            if self.random.random() < self.density:
+            if self.random.random() < self.density and pos != (52, 36):
                 agent_type = 1 if self.random.random() < self.minority_pc else 0
-                agent = SchellingAgent(self.next_id(), self, agent_type, self.city_center, self.happiness_threshold)
+                agent = SchellingAgent(self.next_id(), self, agent_type, happiness_threshold)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
+        
                 
         self.datacollector.collect(self)
 

@@ -15,27 +15,20 @@ def schelling_draw(agent):
     """
     # Portrayl for blocks
     portrayal = {"Shape": "rect", "w": 1, "h": 1, "Filled": "true", "Layer": 0, "Color": "white"}
-
-    # Portrayl for the city center
-    x, y = agent.pos if agent is not None else (None, None)
-    if agent.model.city_center == [(x, y)]:
-        portrayal["Color"] = "black" 
-        portrayal["Shape"] = "rect"
-        portrayal["w"] = 0.8  
-        portrayal["h"] = 0.8  
-        portrayal["Layer"] = 1  # Ensure the city center is displayed above agents
-        return portrayal
         
-
-    # Portrayal for agents
-    if agent is not None:
-        portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
-        if agent.type == 0:
-            portrayal["Color"] = ["#FF0000", "#FF9999"]
-            portrayal["stroke_color"] = "#00FF00"
-        else:
-            portrayal["Color"] = ["#0000FF", "#9999FF"]
-            portrayal["stroke_color"] = "#000000"
+    # Portrayl for the city center
+    if agent.pos  == (52, 36):
+        portrayal = {"Shape": "rect", "w": 0.8, "h": 0.8, "Filled": "true", "Layer": 2, "Color": "black"}
+    else:
+        # Portrayal for agents
+        if agent is not None:
+            portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
+            if agent.type == 0:
+                portrayal["Color"] = ["#FF0000", "#FF9999"]
+                portrayal["stroke_color"] = "#00FF00"
+            else:
+                portrayal["Color"] = ["#0000FF", "#9999FF"]
+                portrayal["stroke_color"] = "#000000"
     return portrayal
 
 
