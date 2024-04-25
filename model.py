@@ -65,6 +65,11 @@ class SchellingAgent(mesa.Agent):
             self.model.grid.move_to_empty(self)
         else:
             self.model.happy += 1
+                if normalized_travel_utility > 0:
+                    self.model.happy_with_travel_time += 1
+                elif normalized_homophily_utility > 0:
+                    self.model.happy_with_homophily += 1
+            
 
 
 class Schelling(mesa.Model):
