@@ -4,7 +4,7 @@ import numpy as np
 
 class SchellingAgent(mesa.Agent):
     """
-    Create a residence agent
+    Construct a residence agent class
     """
 
     def __init__(self, unique_id, model, agent_type, happiness_threshold):
@@ -23,6 +23,9 @@ class SchellingAgent(mesa.Agent):
         self.last_utility = 0
 
     def step(self):
+        '''
+        Defines the step function
+        '''
         # Find the manhattan distance to the city center (52, 36) in the number of blocks
         # Each block is a 1000m * 1000m square
         distance_to_center = abs(self.pos[0] - 52) + abs(self.pos[1] - 36)
@@ -30,7 +33,8 @@ class SchellingAgent(mesa.Agent):
         travel_time = (distance_to_center * 1000) / 30000 * 60
         # Find the travel utility by subtracting travel time from the Marchetti's constant (30 minutes)
         travel_utility = (30 - travel_time)
-        # Normalize the travel utility ranging from -322 to 30
+        
+        # Normalize the travel utility ranging from -322 to 30 (We will explore further augmentations here)
         if travel_utility < 0:
             normalized_travel_utility = travel_utility / 322
         else:
@@ -51,12 +55,15 @@ class SchellingAgent(mesa.Agent):
         # Find the homophily utility by subtracting the number of unsimilar neighbors from thre number of similar neighbors
         homophily_utility = (similar - unsimilar)
         # Normalize the homophily utility ranging from -8 to 8
-        normalized_homophily_utility = homophily_utility / 8
+        normalized_homophily_utility = homophily_utility / 8 # now scaled between (-1, 1)
 
         # Find the total utility by adding travel utility and homophily utility in relation to preference toward them
+        # Form: u(agent) = theta*u(x) + (1-theta)*u(y)
         total_utility = (self.model.preference * normalized_travel_utility) + (1-self.model.preference) * normalized_homophily_utility
         
         # Adjust happiness threshold based on the last utility 
+        ## These functions represent the agents dynamic standards when they 
+        ## make decisions that impact them positively or negatively.
         if total_utility > self.last_utility:
             # Positive feedback: happiness threshold increases 
             self.happiness_threshold += 0.05 * (1 - self.happiness_threshold)
@@ -98,7 +105,7 @@ class CityCenter(mesa.Agent):
 
 class Schelling(mesa.Model):
     """
-    Create a Schelling segregation model based on Cook County
+    Create a Schelling segregation model, representing Cook County population statistics.
     """
 
     def __init__(
@@ -114,7 +121,7 @@ class Schelling(mesa.Model):
         Create a new Schelling model.
 
         Args:
-            height, width: space's size
+            height, width: grid's size
             density: possibility for a block to be occupied by an agent
             minority_pc: possibility for an agent to be in minority class
             preference: relative preference for travel time and homophily
