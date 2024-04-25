@@ -1,12 +1,13 @@
 import mesa
-from model import Schelling
+import math
+from model_archive import Schelling
 
 
 def get_happy_agents(model):
     """
     Display a text count of how many happy agents there are.
     """
-    return f"Happy agents: {model.happy}; Agents happy with travel time: {model.happy_with_travel_time}; Agents happy with homophily: {model.happy_with_homophily}"
+    return f"Happy agents: {model.happy}"
 
 
 def schelling_draw(agent):
@@ -18,7 +19,7 @@ def schelling_draw(agent):
 
     # Differentiate portrayal for cities and agents
     x, y = agent.pos if agent is not None else (None, None)
-    if agent.model.city_center == [x, y]:
+    if (x, y) in agent.model.city_centers:
         portrayal["Color"] = "black"  # Set city center color to black
         portrayal["Shape"] = "rect"  # Set shape to rectangle for city center
         portrayal["w"] = 0.8  
@@ -41,24 +42,30 @@ def schelling_draw(agent):
 
 canvas_element = mesa.visualization.CanvasGrid(
     portrayal_method=schelling_draw,
-    grid_width=60,
-    grid_height=70,
-    canvas_width=600,
-    canvas_height=700,
+    grid_width=300,
+    grid_height=350,
+    canvas_width=700,
+    canvas_height=800,
 )
-happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}, {"Label": "happy_with_travel_time", "Color": "Blue"}, {"Label": "happy_with_homophily", "Color": "Green"}])
+happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
 
 model_params = {
-    "height": 70,
-    "width": 60,
+    "height": 300,
+    "width": 300,
     "density": mesa.visualization.Slider(
         name="Agent Density", value=0.7, min_value=0.1, max_value=1.0, step=0.1
     ),
     "minority_pc": mesa.visualization.Slider(
         name="Minority Percentage", value=0.5, min_value=0.00, max_value=1.0, step=0.05
     ),
-    "preference_ratio": mesa.visualization.Slider(
-        name="Preference Ratio (Travel Time to Homophily)", value = 1, min_value = 0, max_value=2, step=0.1
+    "homophily": mesa.visualization.Slider(
+        name="Homophily", value=2, min_value=0, max_value=3, step=0.1
+    ),
+    "radius": mesa.visualization.Slider(
+        name="Search Radius", value=1, min_value=1, max_value=5, step=1
+    ),
+    "distance": mesa.visualization.Slider(
+        name="Required Distance to City Center", value=10, min_value=0, max_value=30, step=1
     )
 }
 
