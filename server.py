@@ -25,17 +25,17 @@ def schelling_draw(agent):
         portrayal["h"] = 0.8  
         portrayal["Layer"] = 1  # Ensure the city center is displayed above agents
         return portrayal
+        
 
     # Portrayal for agents
     if agent is not None:
-        portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 0}
+        portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
         if agent.type == 0:
             portrayal["Color"] = ["#FF0000", "#FF9999"]
             portrayal["stroke_color"] = "#00FF00"
         else:
             portrayal["Color"] = ["#0000FF", "#9999FF"]
             portrayal["stroke_color"] = "#000000"
-
     return portrayal
 
 
@@ -60,10 +60,10 @@ model_params = {
     "height": 70,
     "width": 60,
     "density": mesa.visualization.Slider(
-        name="Agent Density", value=0.7, min_value=0.1, max_value=1.0, step=0.1
+        name="Agent Density", value=0.35, min_value=0.1, max_value=1.0, step=0.05
     ),
     "minority_pc": mesa.visualization.Slider(
-        name="Minority Percentage", value=0.5, min_value=0.00, max_value=1.0, step=0.05
+        name="Minority Percentage", value=0.35, min_value=0.00, max_value=1.0, step=0.05
     ),
     "preference": mesa.visualization.Slider(
         name="Preference(0:Homophily, 1:travel time)", value = 0.5, min_value = 0, max_value=1, step=0.1

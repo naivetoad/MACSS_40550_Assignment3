@@ -86,15 +86,15 @@ class SchellingAgent(mesa.Agent):
 
 class Schelling(mesa.Model):
     """
-    Create a Schelling segregation model
+    Create a Schelling segregation model based on Cook County
     """
 
     def __init__(
         self,
         height=70,
         width=60,
-        density=0.3,
-        minority_pc=0.5,
+        density=0.35, # 35% land used for residence in Cook County
+        minority_pc=0.35, # 35% minority in Cook County
         preference=0.5, 
         seed=42,
     ):
@@ -114,7 +114,6 @@ class Schelling(mesa.Model):
         self.width = width
         self.density = density
         self.minority_pc = minority_pc
-        self.homophily = homophily
         self.preference = preference
 
         self.schedule = mesa.time.RandomActivation(self)
