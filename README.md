@@ -5,7 +5,7 @@ Our model was modified from [Schelling's segregation model](https://github.com/j
 
 ## Changes been made
 + Adjust the grid to 60x70 blocks which 1 block means 1kmx1km in real Chicago.
-+ Add one city center to simulate Chicago City using Millennium Park as the central block, located on the middle right part of the canvas.
++ Add one city center as an agent to simulate Chicago City using Millennium Park as the central block, located on the middle right part of the canvas.
 + Create a utility function, which takes happiness on travel time and happiness on homopholy into consideration and is adjustable by including preference parameters.
 + Random updating method is used for active agents.
 + Made the happy threshold dynamic, which will increase by 0.05 for each happy agent and decrease by 0.05 for unhappy agents. This happiness threshold could be regarded as a measurement of society's total welfare. It also acts as a learning mechanism to motivate agents to improve their happiness.
