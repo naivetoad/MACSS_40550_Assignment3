@@ -11,9 +11,9 @@ import pandas as pd
 # parameters you want to vary
 parameters = {"height": 70,
               "width": 60,
-              "density": 0.35,
+              "density": 0.7,
               "minority_pc": np.linspace(0, 0.5, 6),
-              "preference": np.linspace(0, 1, 4)} 
+              "preference": np.linspace(0, 1, 5)} 
 
 # what to run and what to collect
 # iterations is how many runs per parameter value
@@ -21,9 +21,8 @@ parameters = {"height": 70,
 results = batch_run(Schelling, 
                     parameters,
                     iterations=50,  
-                    max_steps=120, 
-                    data_collection_period = [30,60,90,120],
-                    number_processes= None) #how often do you want to pull the data
+                    max_steps=100, 
+                    data_collection_period = 50) #how often do you want to pull the data
 
 
 
