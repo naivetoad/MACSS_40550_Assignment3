@@ -178,7 +178,7 @@ class Schelling(mesa.Model):
         # Run one step
         self.schedule.step()
         self.avg_utility_type0 = self.agg_utility_type0 / self.num_type0 
-        self.avg_utility_type1 = self.agg_utility_type1 / self.num_type1
+        self.avg_utility_type1 = self.agg_utility_type1 / self.num_type1 if self.num_type1 != 0 else 0
 
         # Collect data
         self.datacollector.collect(self)

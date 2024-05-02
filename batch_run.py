@@ -22,13 +22,8 @@ results = batch_run(Schelling,
                     parameters,
                     iterations=50,  
                     max_steps=100, 
-                    data_collection_period = 50) #how often do you want to pull the data
+                    data_collection_period = 20)
 
-
-
-
-
-## NOTE: to do data collection, you need to be sure your pathway is correct to save this!
 # Data collection
 # extract data as a pandas Data Frame
 pd.DataFrame(results).to_csv("batch_data.csv")
