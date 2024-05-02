@@ -20,9 +20,10 @@ parameters = {"height": 70,
 # max_steps is how long to run the model
 results = batch_run(Schelling, 
                     parameters,
-                    iterations=10,  
-                    max_steps=100, 
-                    data_collection_period = 100) #how often do you want to pull the data
+                    iterations=50,  
+                    max_steps=120, 
+                    data_collection_period = [30,60,90,120],
+                    number_processes= None) #how often do you want to pull the data
 
 
 
