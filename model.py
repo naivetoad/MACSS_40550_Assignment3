@@ -7,7 +7,7 @@ class SchellingAgent(mesa.Agent):
     Construct a residence agent class
     """
 
-    def __init__(self, unique_id, model, agent_type, happiness_threshold):
+    def __init__(self, unique_id, model, agent_type):
         """
         Initialize an agent
         
@@ -19,7 +19,6 @@ class SchellingAgent(mesa.Agent):
         """
         super().__init__(unique_id, model)
         self.type = agent_type
-        self.happiness_threshold = happiness_threshold
         self.last_utility = 0
 
     def step(self):
@@ -61,33 +60,30 @@ class SchellingAgent(mesa.Agent):
         # Form: u(agent) = theta*u(x) + (1-theta)*u(y)
         total_utility = (self.model.preference * normalized_travel_utility) + (1-self.model.preference) * normalized_homophily_utility 
         
-        
+        happiness_threshold = 0.5
         # Adjust happiness threshold based on the last utility 
         ## These functions represent the agents dynamic standards when they 
         ## make decisions that impact them positively or negatively. 
         ## Future work will look at different mechanisms of agent learning.
         if total_utility > self.last_utility:
             # Positive feedback: happiness threshold increases 
-            self.happiness_threshold += 0.05 * (1 - self.happiness_threshold)
+            happiness_threshold += 0.05 * (1 - happiness_threshold)
         elif total_utility < self.last_utility:
             # Negative feedback: happiness threshold decreases 
-            self.happiness_threshold -= 0.05 * (1 - self.happiness_threshold)
+            happiness_threshold -= 0.05 * (1 - happiness_threshold)
 
-        # Update the last utility for the next move
-        agg_utility = 0
-        number_of_agents_of_type_0 = self.model.height * self.model.width * self.model.density * (1 - self.model.minority_pc) 
-        number_of_agents_of_type_1 = self.model.height * self.model.width * self.model.density * self.model.minority_pc
-
+        # Update last utility
         self.last_utility = total_utility
-        agg_utility += total_utility
-
+        
+        # Update aggregated utility 
         if self.type == 0:
-            self.model.avg_utility_type0 = agg_utility/number_of_agents_of_type_0
+            self.model.agg_utility_type0 += total_utility
         else:
-            self.model.avg_utility_type1 = agg_utility/number_of_agents_of_type_1
+            self.model.agg_utility_type1 += total_utility
 
         # Update an agent's location
-        if total_utility < self.happiness_threshold:
+        
+        if total_utility < happiness_threshold:
             # An agent mvoes to an empty space if the total utility is smaller than the happiness threshold
             self.model.grid.move_to_empty(self)
         else:
@@ -118,8 +114,8 @@ class Schelling(mesa.Model):
         self,
         height=70,
         width=60,
-        density=0.35, # 35% land used for residence in Cook County
-        minority_pc=0.35, # 35% minority in Cook County
+        density=0.7,
+        minority_pc=0.3,
         preference=0.5,  
         seed=None,
     ):
@@ -140,20 +136,22 @@ class Schelling(mesa.Model):
         self.density = density
         self.minority_pc = minority_pc
         self.preference = preference
-        self.avg_utility_type0 = 0
-        self.avg_utility_type1 = 0
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=False)
 
         # Create variables for data collector
         self.happy = 0
-        self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy",
-                                                                 "avg_utility_type0": "avg_utility_type0",
-                                                                 "avg_utility_type1": "avg_utility_type1"})
+        self.agg_utility_type0 = 0
+        self.agg_utility_type1 = 0
+        self.num_type0 = height * width * density * (1 - minority_pc)
+        self.num_type1 = height * width * density * minority_pc
+        self.avg_utility_type0 = 0
+        self.avg_utility_type1 = 0
 
-        # Set up happiness threshold
-        happiness_threshold = 0.5
+        self.datacollector = mesa.DataCollector(model_reporters={"Number of Happy Agents": "happy",
+                                                                 "Average Utility of Majority Agents": "avg_utility_type0",
+                                                                 "Average Utility of Minority Agents": "avg_utility_type1"})
 
         agent = CityCenter(self.next_id(), self)
         self.grid.place_agent(agent, (52, 36)) # location of the Millennium Park
@@ -162,12 +160,10 @@ class Schelling(mesa.Model):
         for _, pos in self.grid.coord_iter():
             if self.random.random() < self.density and pos != (52, 36):
                 agent_type = 1 if self.random.random() < self.minority_pc else 0
-                agent = SchellingAgent(self.next_id(), self, agent_type, happiness_threshold)
+                agent = SchellingAgent(self.next_id(), self, agent_type)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
-
-        
-                
+       
         self.datacollector.collect(self)
 
     def step(self):
@@ -176,11 +172,14 @@ class Schelling(mesa.Model):
         """
         # Reset data collector
         self.happy = 0
-        self.avg_utility_type0 = 0
-        self.avg_utility_type1 = 0
+        self.agg_utility_type0 = 0
+        self.agg_utility_type1 = 0
 
         # Run one step
         self.schedule.step()
+        self.avg_utility_type0 = self.agg_utility_type0 / self.num_type0 
+        self.avg_utility_type1 = self.agg_utility_type1 / self.num_type1
+
         # Collect data
         self.datacollector.collect(self)
 

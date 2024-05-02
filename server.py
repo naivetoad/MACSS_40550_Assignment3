@@ -6,7 +6,7 @@ def get_happy_agents(model):
     """
     Display data collection in text
     """
-    return f"Happy agents: {model.happy}"
+    return f"Happy Agents: {model.happy}, Average Utility of Majority Agents: {model.avg_utility_type0}, Average Utility of Minority Agents : {model.avg_utility_type1}"
 
 
 def schelling_draw(agent):
@@ -43,19 +43,19 @@ canvas_element = mesa.visualization.CanvasGrid(
 
 
 # Display data collection in a chart
-happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
+happy_chart = mesa.visualization.ChartModule([{"Label": "Number of Happy Agents", "Color": "Black"}])
 
-happy_chart2 = mesa.visualization.ChartModule([{"Label": "avg_utility_type0", "Color": "Blue"}, {"Label": "avg_utility_type1", "Color": "Yellow"}])
+happy_chart2 = mesa.visualization.ChartModule([{"Label": "Average Utility of Majority Agents", "Color": "Blue"}, {"Label": "Average Utility of Minority Agents", "Color": "Yellow"}])
 
 # Set up modifiable paramters 
 model_params = {
     "height": 70,
     "width": 60,
     "density": mesa.visualization.Slider(
-        name="Agent Density", value=0.35, min_value=0.1, max_value=1.0, step=0.05
+        name="Agent Density", value=0.7, min_value=0.1, max_value=1.0, step=0.05
     ),
     "minority_pc": mesa.visualization.Slider(
-        name="Minority Percentage", value=0.35, min_value=0.00, max_value=1.0, step=0.05
+        name="Minority Percentage", value=0.3, min_value=0.00, max_value=1.0, step=0.05
     ),
     "preference": mesa.visualization.Slider(
         name="Preference(0:Homophily, 1:travel time)", value = 0.5, min_value = 0, max_value=1, step=0.1
