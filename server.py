@@ -6,7 +6,7 @@ def get_happy_agents(model):
     """
     Display data collection in text
     """
-    return f"Happy agents: {model.happy}; Agents happy with travel time: {model.happy_with_travel_time}"
+    return f"Happy agents: {model.happy}"
 
 
 def schelling_draw(agent):
@@ -43,8 +43,7 @@ canvas_element = mesa.visualization.CanvasGrid(
 
 
 # Display data collection in a chart
-happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"},
-                                              {"Label": "happy_with_travel_time", "Color": "Green"}])
+happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}])
 
 happy_chart2 = mesa.visualization.ChartModule([{"Label": "avg_utility_type0", "Color": "Blue"}, {"Label": "avg_utility_type1", "Color": "Yellow"}])
 

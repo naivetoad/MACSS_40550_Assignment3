@@ -53,7 +53,7 @@ class SchellingAgent(mesa.Agent):
                     unsimilar += 1
 
         # Find the homophily utility by subtracting the number of unsimilar neighbors from thre number of similar neighbors
-        homophily_utility = (similar - unsimilar)
+        homophily_utility = (1.2*similar - unsimilar)
         # Normalize the homophily utility ranging from -8 to 8
         normalized_homophily_utility = homophily_utility / 24 # now scaled between (-1, 1)
 
@@ -75,8 +75,8 @@ class SchellingAgent(mesa.Agent):
 
         # Update the last utility for the next move
         agg_utility = 0
-        number_of_agents_of_type_0 = sum(1 for agent in self.model.agents if agent.pos != (52, 36) and agent.type == 0)
-        number_of_agents_of_type_1 = sum(1 for agent in self.model.agents if agent.pos != (52, 36) and agent.type == 1)
+        number_of_agents_of_type_0 = self.model.height * self.model.width * self.model.density * (1 - self.model.minority_pc) 
+        number_of_agents_of_type_1 = self.model.height * self.model.width * self.model.density * self.model.minority_pc
 
         self.last_utility = total_utility
         agg_utility += total_utility
@@ -92,15 +92,7 @@ class SchellingAgent(mesa.Agent):
             self.model.grid.move_to_empty(self)
         else:
             # Track the number of happy agents
-            self.model.happy += 1
-            # Track the number of agents happy with travel time
-            if normalized_travel_utility > 0:
-                self.model.happy_with_travel_time += 1
-            # Track the number of agents happy with homophily 
-            if normalized_homophily_utility > 0:
-                self.model.happy_with_homophily += 1
-
-        
+            self.model.happy += 1    
 
 class CityCenter(mesa.Agent):
     """
@@ -156,11 +148,7 @@ class Schelling(mesa.Model):
 
         # Create variables for data collector
         self.happy = 0
-        self.happy_with_travel_time = 0
-        self.happy_with_homophily = 0
         self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy",
-                                                                 "happy_with_travel_time": "happy_with_travel_time",
-                                                                 "happy_with_homophily": "happy_with_homophily",
                                                                  "avg_utility_type0": "avg_utility_type0",
                                                                  "avg_utility_type1": "avg_utility_type1"})
 
@@ -188,8 +176,6 @@ class Schelling(mesa.Model):
         """
         # Reset data collector
         self.happy = 0
-        self.happy_with_travel_time = 0
-        self.happy_with_homophily = 0
         self.avg_utility_type0 = 0
         self.avg_utility_type1 = 0
 
