@@ -6,7 +6,7 @@ def get_happy_agents(model):
     """
     Display data collection in text
     """
-    return f"Happy agents: {model.happy}; Agents happy with travel time: {model.happy_with_travel_time}; Agents happy with homophily: {model.happy_with_homophily}; Agents aggregate utility: {model.avg_utility}"
+    return f"Happy agents: {model.happy}; Agents happy with travel time: {model.happy_with_travel_time}"
 
 
 def schelling_draw(agent):
@@ -24,10 +24,10 @@ def schelling_draw(agent):
         if agent is not None:
             portrayal = {"Shape": "circle", "r": 0.5, "Filled": "true", "Layer": 1}
             if agent.type == 0:
-                portrayal["Color"] = ["#FF0000", "#FF9999"]
-                portrayal["stroke_color"] = "#00FF00"
+                portrayal["Color"] = ["Blue"]
+                portrayal["stroke_color"] = "#000000"
             else:
-                portrayal["Color"] = ["#0000FF", "#9999FF"]
+                portrayal["Color"] = ["Yellow"]
                 portrayal["stroke_color"] = "#000000"
     return portrayal
 
@@ -43,11 +43,10 @@ canvas_element = mesa.visualization.CanvasGrid(
 
 
 # Display data collection in a chart
-happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"}, 
-                                              {"Label": "happy_with_travel_time", "Color": "Blue"}, 
-                                              {"Label": "happy_with_homophily", "Color": "Green"},
-                                              {"Label": "avg_utility", "Color": "Orange"}])
+happy_chart = mesa.visualization.ChartModule([{"Label": "happy", "Color": "Black"},
+                                              {"Label": "happy_with_travel_time", "Color": "Green"}])
 
+happy_chart2 = mesa.visualization.ChartModule([{"Label": "avg_utility_type0", "Color": "Blue"}, {"Label": "avg_utility_type1", "Color": "Yellow"}])
 
 # Set up modifiable paramters 
 model_params = {
@@ -67,7 +66,7 @@ model_params = {
 # Set up the server 
 server = mesa.visualization.ModularServer(
     model_cls=Schelling,
-    visualization_elements=[canvas_element, get_happy_agents, happy_chart],
+    visualization_elements=[canvas_element, get_happy_agents, happy_chart, happy_chart2],
     name="Schelling Segregation Model",
     model_params=model_params,
 )
