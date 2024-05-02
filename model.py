@@ -74,8 +74,10 @@ class SchellingAgent(mesa.Agent):
             self.happiness_threshold -= 0.05 * (1 - self.happiness_threshold)
 
         # Update the last utility for the next move
+        agg_utility = 0
         self.last_utility = total_utility
-        self.model.agg_utility += total_utility
+        agg_utility += total_utility
+        self.model.avg_utility = agg_utility/len(self.model.agents)
 
         # Update an agent's location
         if total_utility < self.happiness_threshold:
@@ -139,7 +141,7 @@ class Schelling(mesa.Model):
         self.density = density
         self.minority_pc = minority_pc
         self.preference = preference
-        self.agg_utility = 0
+        self.avg_utility = 0
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=False)
@@ -151,7 +153,7 @@ class Schelling(mesa.Model):
         self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy",
                                                                  "happy_with_travel_time": "happy_with_travel_time",
                                                                  "happy_with_homophily": "happy_with_homophily",
-                                                                 "agg_utility": "agg_utility"})
+                                                                 "avg_utility": "avg_utility"})
 
         # Set up happiness threshold
         happiness_threshold = 0.5
@@ -166,6 +168,7 @@ class Schelling(mesa.Model):
                 agent = SchellingAgent(self.next_id(), self, agent_type, happiness_threshold)
                 self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
+
         
                 
         self.datacollector.collect(self)
@@ -178,7 +181,7 @@ class Schelling(mesa.Model):
         self.happy = 0
         self.happy_with_travel_time = 0
         self.happy_with_homophily = 0
-        self.agg_utility = 0
+        self.avg_utility = 0
 
         # Run one step
         self.schedule.step()
