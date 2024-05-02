@@ -75,6 +75,7 @@ class SchellingAgent(mesa.Agent):
 
         # Update the last utility for the next move
         self.last_utility = total_utility
+        self.model.agg_utility += total_utility
 
         # Update an agent's location
         if total_utility < self.happiness_threshold:
@@ -89,6 +90,8 @@ class SchellingAgent(mesa.Agent):
             # Track the number of agents happy with homophily 
             if normalized_homophily_utility > 0:
                 self.model.happy_with_homophily += 1
+
+        
 
 class CityCenter(mesa.Agent):
     """
@@ -136,6 +139,7 @@ class Schelling(mesa.Model):
         self.density = density
         self.minority_pc = minority_pc
         self.preference = preference
+        self.agg_utility = 0
 
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(width, height, torus=False)
@@ -146,7 +150,8 @@ class Schelling(mesa.Model):
         self.happy_with_homophily = 0
         self.datacollector = mesa.DataCollector(model_reporters={"happy": "happy",
                                                                  "happy_with_travel_time": "happy_with_travel_time",
-                                                                 "happy_with_homophily": "happy_with_homophily"})
+                                                                 "happy_with_homophily": "happy_with_homophily",
+                                                                 "agg_utility": "agg_utility"})
 
         # Set up happiness threshold
         happiness_threshold = 0.5
@@ -173,6 +178,7 @@ class Schelling(mesa.Model):
         self.happy = 0
         self.happy_with_travel_time = 0
         self.happy_with_homophily = 0
+        self.agg_utility = 0
 
         # Run one step
         self.schedule.step()
